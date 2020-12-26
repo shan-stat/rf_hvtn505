@@ -13,7 +13,7 @@ This R file contains several helper functions that help to easly get results.
 - *get.st.cvauc*: fits stacking that is based on random forests and generalized linear models. 
 
 ## experiments.R
-This R file containes codes for all experiments in the manuscript.
+This R file contains codes for all experiments in the manuscript.
 
 Step 1) Importing HVTN 505 dataset
 - i) First download the HVTN 505 dataset at https://atlas.scharp.org/cpas/project/HVTN%20Public%20Data/HVTN%20505/begin.view
@@ -22,4 +22,4 @@ Step 1) Importing HVTN 505 dataset
 Step 2) Conducting Experiments
 - Codes in "2-1. Random forest (RF)" generate all random forest-based results in Table 1, 2, and 3 in the manuscript. You can customize whether clinical covariates are included or whether lasso variable screening is applied.
 - Codes in "2-2. Generalized linear models (GLM)" generate all generalized linear models-based results in Table 3 and Table A.1 (supplemantary material). You can customize whether clinical covariates are included or whether lasso variable screening is applied.
-- Codes in "2-3. Stacking (RF + GLM)" generate all stacking results in Table 4. To fit stacking, you should first import four R files under the folder caretEmsembleR, which are "helper_functions.R", "caretList.R", "caretEnsemble.R", and "caretStack.R", in "caretEmsemblerR" folder. These four files are copied from the *caretEnsemble* R package (Deane-Mayer and Knowles, 2016), and changes were made so that candidate learners can be fit on different training datasets simultaneously.
+- Codes in "2-3. Stacking (RF + GLM)" generate all stacking results in Table 4. To fit stacking, you should first import four R files under the folder caretEmsemblerR, which are "helper_functions.R", "caretList.R", "caretEnsemble.R", and "caretStack.R", in "caretEmsemblerR" folder. These four files are copied from the *caretEnsemble* R package (Deane-Mayer and Knowles, 2016), and changes were made so that candidate learners can be fit on different training datasets simultaneously.
