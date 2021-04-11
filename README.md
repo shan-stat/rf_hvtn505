@@ -1,5 +1,5 @@
 # rf_hvtn505
-This document aims to instruct how to reproduce results in the manuscript "Improving Random Forest Predictions in Small Datasets from Two-phase Sampling Designs". The source codes can be generally split into two main R files "myhelper.R" and "experiments". The detailed explanations are as follows.
+This document aims to instruct how to reproduce results in the manuscript "Improving Random Forest Predictions in Small Datasets from Two-phase Sampling Designs". The source codes can be generally split into two main R files "myhelper.R" and "experiments.R". The detailed explanations are as follows.
 
 ## myhelper.R
 This R file contains several helper functions that help to easly get results.
