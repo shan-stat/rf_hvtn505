@@ -129,7 +129,6 @@ res=sapply(seeds, simplify="array", function (seed) {
   }
   
   # Stacking (CV-AUC) #
-  # Ten replicates #
   pred.vec <- c()
   for( i in 1:500 ){
     print(i)
