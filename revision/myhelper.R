@@ -85,12 +85,12 @@ screen.dat.index <- function(Y, X, fit.set = c('no','antibody','tcell','all'),
     dat <- cbind(Y = Y, X[,var_set_none])
   } else if( fit.set == 'antibody' ){
     # 2. antibody markers (IgG + IgA + IgG3 + phago + fcrR2a + fcrR3a) #
-    var_set_igg_iga_igg3_fxab <- get_nms_group_all_antigens(X_markers, assays = c("IgG", "IgA", "IgG3", "phago", "fcrR2a", "fcrR3a"))
+    var_set_igg_iga_igg3_fxab <- get_nms_group_all_antigens(X, assays = c("IgG", "IgA", "IgG3", "phago", "fcrR2a", "fcrR3a"))
     var_set_igg_iga_igg3_fxab[1:3] =T
     dat <- cbind(Y = Y, X[,var_set_igg_iga_igg3_fxab])
   } else if( fit.set == 'tcell' ){
     # 3. T cell markers (CD4 and CD8) #
-    var_set_tcells <- get_nms_group_all_antigens(X_markers, assays = c("CD4", "CD8"))
+    var_set_tcells <- get_nms_group_all_antigens(X, assays = c("CD4", "CD8"))
     var_set_tcells[1:3] =T
     dat <- cbind(Y = Y, X[,var_set_tcells])
   } else if( fit.set == 'all' ){

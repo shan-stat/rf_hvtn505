@@ -46,8 +46,7 @@ screen.var.all <- screen.dat.index(Y=Y_vaccine, X=X_vaccine, obsWeights=weights_
 
 
 # For t cell markers #
-screen.var.tcell.temp <- screen.dat.index(Y=Y_vaccine, X=X_vaccine, X_markers=X_markers, obsWeights=weights_vaccine,
-                                          fit.set='tcell', screen.dat.method='lasso', screen.index.method='lasso')$screen.index.var
+screen.var.tcell.temp <- screen.dat.index(Y=Y_vaccine, X=X_vaccine, obsWeights=weights_vaccine, fit.set='tcell', screen.dat.method='lasso')$screen.index.var
 screen.var.tcell <- rep(FALSE,ncol(X_vaccine))
 for(i in 1:length(which(screen.var.tcell.temp))){
   temp <- which(names(X_vaccine) == names(which(screen.var.tcell.temp)[i]))
