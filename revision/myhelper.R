@@ -72,8 +72,58 @@ screen_lasso <- function(Y, X, family, obsWeights=rep(1, nrow(X)), alpha = 1) {
   return(vars)
 }
 
+
 # Importing screened data and screened variable index #
-screen.dat.index <- function(Y, X, fit.set = c('no','antibody','tcell','all'),
+screen.dat.index <- function(Y, X, X_markers, fit.set = c('no','antibody','tcell','all'),
+                             screen.dat.method = c('no','lasso'), screen.index.method = c('no','lasso'), obsWeights){
+  
+  # candidate set #
+  if( fit.set == 'no' ){
+    # 1. no markers (only clinical covariates : age, BMI, bhrisk) #
+    var_set_none <- rep(FALSE, ncol(X_markers))
+    var_set_none <- c( rep(TRUE, 3), var_set_none )
+    dat <- cbind(Y = Y, X[,var_set_none])
+  } else if( fit.set == 'antibody' ){
+    # 2. antibody markers (IgG + IgA + IgG3 + phago + fcrR2a + fcrR3a) #
+    var_set_igg_iga_igg3_fxab <- get_nms_group_all_antigens(X_markers, assays = c("IgG", "IgA", "IgG3", "phago", "fcrR2a", "fcrR3a"))
+    var_set_igg_iga_igg3_fxab <- c( rep(TRUE, 3), var_set_igg_iga_igg3_fxab )
+    dat <- cbind(Y = Y, X[,var_set_igg_iga_igg3_fxab])
+  } else if( fit.set == 'tcell' ){
+    # 3. T cell markers (CD4 and CD8) #
+    var_set_tcells <- get_nms_group_all_antigens(X_markers, assays = c("CD4", "CD8"))
+    var_set_tcells <- c( rep(TRUE, 3), var_set_tcells )
+    dat <- cbind(Y = Y, X[,var_set_tcells])
+  } else if( fit.set == 'all' ){
+    # 4. all markers #
+    var_set_all <- rep(TRUE, ncol(X_markers))
+    var_set_all <- c( rep(TRUE, 3), var_set_all )
+    dat <- cbind(Y = Y, X[,var_set_all])
+  }
+  
+  # Screened data #
+  if( screen.dat.method == 'no' ){
+    # no screening #
+    screen.dat.var <- rep(TRUE, (ncol(dat)-1))
+  } else if( screen.dat.method == 'lasso' ){
+    # lasso screening #
+    screen.dat.var <- screen_lasso( Y = dat$Y, X = dat[,colnames(dat)!='Y'], family = 'binomial', obsWeights = obsWeights )
+  } 
+  
+  # Screened variable index #
+  if( screen.index.method == 'no' ){
+    # no screening #
+    screen.index.var <- rep(TRUE, (ncol(dat)-1))
+  } else if( screen.index.method == 'lasso' ){
+    # lasso screening #
+    screen.index.var <- screen_lasso( Y = dat$Y, X = dat[,colnames(dat)!='Y'], family = 'binomial', obsWeights = obsWeights )
+  } 
+  
+  dat.X <- list( case = dat[dat$Y == 1, c(FALSE, screen.dat.var)], control = dat[dat$Y == 0, c(FALSE, screen.dat.var)])
+  return(list(screen.index.var = screen.index.var, dat = dat.X))
+}
+
+
+screen.dat.index.2 <- function(Y, X, fit.set = c('no','antibody','tcell','all'),
                              screen.dat.method = c('no','lasso'), obsWeights){
   
   p=ncol(X)-3
@@ -111,6 +161,7 @@ screen.dat.index <- function(Y, X, fit.set = c('no','antibody','tcell','all'),
   dat.X <- list( case = dat[dat$Y == 1, c(FALSE, screen.dat.var)], control = dat[dat$Y == 0, c(FALSE, screen.dat.var)])
   return(list(screen.index.var = screen.dat.var, dat = dat.X))
 }
+
 
 # Variable names #
 get_nms_group_all_antigens <- function(X, assays, assays_to_exclude = "") {
@@ -241,7 +292,7 @@ get.glm.cvauc = function(dat, obsWeights, ipw, seed=1){
 }
 
 # Stacking #
-get.st.cvauc = function(dat, obsWeights, strata, var.index, method, seed=1){
+get.st.cvauc = function(dat, obsWeights, strata, var.index, method, seed=1, mc.cores=mc.cores){
   
   # Outer layer: random stratified cv #
   splits <- random.strata.splits(dat, strata, seed)
@@ -297,6 +348,6 @@ get.st.cvauc = function(dat, obsWeights, strata, var.index, method, seed=1){
     # Calculating Pearson correlation coefficient #
     est.corr <- cor(pred.cv$preds[,1], pred.cv$preds[,2])
     c(est.cvauc=est.cvauc, est.corr=est.corr)
-  }, mc.cores = 4 )
+  }, mc.cores = mc.cores )
   cv.aucs
 }

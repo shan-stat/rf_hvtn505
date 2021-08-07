@@ -55,14 +55,31 @@ for(i in 1:length(which(screen.var.tcell.temp))){
 screen.var.tcell
 
 # For antibody markers #
-screen.var.antibody.temp <- screen.dat.index(Y=Y_vaccine, X=X_vaccine, X_markers=X_markers, obsWeights=weights_vaccine,
-                                             fit.set='antibody', screen.dat.method='lasso', screen.index.method='lasso')$screen.index.var
+screen.var.antibody.temp <- screen.dat.index(Y=Y_vaccine, X=X_vaccine, obsWeights=weights_vaccine, fit.set='antibody', screen.dat.method='lasso')$screen.index.var
 screen.var.antibody <- rep(FALSE,ncol(X_vaccine))
 for(i in 1:length(which(screen.var.antibody.temp))){
   temp <- which(names(X_vaccine) == names(which(screen.var.antibody.temp)[i]))
   screen.var.antibody[temp] <- TRUE
 }
 screen.var.antibody
+
+
+dat.X <- screen.dat.index(Y=Y_vaccine, X=X_vaccine, obsWeights=weights_vaccine_boot, fit.set='all', screen.dat.method='no')$dat
+var.index.set <- list(glm=c(TRUE,screen.var.antibody), rf=c(TRUE,screen.var.tcell))
+
+pred.vec = sapply(1:10, function(seed){
+    myprint(seed)
+    
+    dat=dat.X; obsWeights=weights_vaccine; strata=strata_vaccine; var.index=var.index.set; method='method.NNloglik'; mc.cores=1;
+
+    res.temp <- get.st.cvauc(dat=dat.X, obsWeights=weights_vaccine, strata=strata_vaccine, var.index=var.index.set, method='method.NNloglik', seed=seed)
+    mean(do.call(rbind,res.temp)[,'est.cvauc'])
+})
+mean(pred.vec)
+
+
+
+
 
 ### 2. Experiments ###
 res=sapply(seeds, simplify="array", function (seed) {
@@ -92,8 +109,7 @@ res=sapply(seeds, simplify="array", function (seed) {
   weights_vaccine_boot <- weights_vaccine[c(idx.case, idx.control)]
   
   # Generating data where stacking is fitted #
-  dat.X <- screen.dat.index(Y=Y_vaccine_boot, X=X_vaccine_boot, X_markers=X_markers, obsWeights=weights_vaccine_boot,
-                            fit.set='all', screen.dat.method='no', screen.index.method='no')$dat
+  dat.X <- screen.dat.index(Y=Y_vaccine_boot, X=X_vaccine_boot, obsWeights=weights_vaccine_boot, fit.set='all', screen.dat.method='no')$dat
   
   if(can.set=='RF:tcell+glm:antibody'){
     # RF:tcell + glm:antibody #
