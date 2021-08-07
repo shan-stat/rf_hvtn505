@@ -42,11 +42,11 @@ i=i+1; method=Args[i]
 
 # Specifying screened variables index #
 # For all markers #
-screen.var.all <- screen.dat.index(Y=Y_vaccine, X=X_vaccine, obsWeights=weights_vaccine, fit.set='all', screen.dat.method='lasso')$screen.index.var
+screen.var.all <- screen.dat.index.2(Y=Y_vaccine, X=X_vaccine, obsWeights=weights_vaccine, fit.set='all', screen.dat.method='lasso')$screen.index.var
 
 
 # For t cell markers #
-screen.var.tcell.temp <- screen.dat.index(Y=Y_vaccine, X=X_vaccine, obsWeights=weights_vaccine, fit.set='tcell', screen.dat.method='lasso')$screen.index.var
+screen.var.tcell.temp <- screen.dat.index.2(Y=Y_vaccine, X=X_vaccine, obsWeights=weights_vaccine, fit.set='tcell', screen.dat.method='lasso')$screen.index.var
 screen.var.tcell <- rep(FALSE,ncol(X_vaccine))
 for(i in 1:length(which(screen.var.tcell.temp))){
   temp <- which(names(X_vaccine) == names(which(screen.var.tcell.temp)[i]))
@@ -55,7 +55,7 @@ for(i in 1:length(which(screen.var.tcell.temp))){
 screen.var.tcell
 
 # For antibody markers #
-screen.var.antibody.temp <- screen.dat.index(Y=Y_vaccine, X=X_vaccine, obsWeights=weights_vaccine, fit.set='antibody', screen.dat.method='lasso')$screen.index.var
+screen.var.antibody.temp <- screen.dat.index.2(Y=Y_vaccine, X=X_vaccine, obsWeights=weights_vaccine, fit.set='antibody', screen.dat.method='lasso')$screen.index.var
 screen.var.antibody <- rep(FALSE,ncol(X_vaccine))
 for(i in 1:length(which(screen.var.antibody.temp))){
   temp <- which(names(X_vaccine) == names(which(screen.var.antibody.temp)[i]))
@@ -64,7 +64,7 @@ for(i in 1:length(which(screen.var.antibody.temp))){
 screen.var.antibody
 
 
-dat.X <- screen.dat.index(Y=Y_vaccine, X=X_vaccine, obsWeights=weights_vaccine_boot, fit.set='all', screen.dat.method='no')$dat
+dat.X <- screen.dat.index.2(Y=Y_vaccine, X=X_vaccine, obsWeights=weights_vaccine_boot, fit.set='all', screen.dat.method='no')$dat
 var.index.set <- list(glm=c(TRUE,screen.var.antibody), rf=c(TRUE,screen.var.tcell))
 
 pred.vec = sapply(1:10, function(seed){
@@ -109,7 +109,7 @@ res=sapply(seeds, simplify="array", function (seed) {
   weights_vaccine_boot <- weights_vaccine[c(idx.case, idx.control)]
   
   # Generating data where stacking is fitted #
-  dat.X <- screen.dat.index(Y=Y_vaccine_boot, X=X_vaccine_boot, obsWeights=weights_vaccine_boot, fit.set='all', screen.dat.method='no')$dat
+  dat.X <- screen.dat.index.2(Y=Y_vaccine_boot, X=X_vaccine_boot, obsWeights=weights_vaccine_boot, fit.set='all', screen.dat.method='no')$dat
   
   if(can.set=='RF:tcell+glm:antibody'){
     # RF:tcell + glm:antibody #
