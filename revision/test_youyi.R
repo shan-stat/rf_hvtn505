@@ -17,6 +17,7 @@ dat.505[,c('age', 'BMI', 'bhvrisk', var.super$varname)]=scale(dat.505[,c('age', 
 
 Y_vaccine <- dat.505$case
 X_vaccine <- dat.505 %>% select(age, BMI, bhvrisk, var.super$varname)
+rownames(X_vaccine) <- 1:150 # to assign 1:150 for treatment
 weights_vaccine <- dat.505$wt
 strata_vaccine <- dat.505$hg_strata
 
