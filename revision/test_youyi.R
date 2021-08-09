@@ -17,7 +17,7 @@ dat.505[,c('age', 'BMI', 'bhvrisk', var.super$varname)]=scale(dat.505[,c('age', 
 
 Y_vaccine <- dat.505$case
 X_vaccine <- dat.505 %>% select(age, BMI, bhvrisk, var.super$varname)
-rownames(X_vaccine) <- 1:150 # to assign 1:150 for treatment
+#rownames(X_vaccine) <- 1:150 # to assign 1:150 for treatment
 weights_vaccine <- dat.505$wt
 strata_vaccine <- dat.505$hg_strata
 
@@ -72,12 +72,10 @@ var.index.set <- list(glm=c(TRUE,screen.var.antibody), rf=c(TRUE,screen.var.tcel
 
 
 
-pred.vec = sapply(1:10, function(seed){
-    myprint(seed)
-    
+pred.vec = sapply(1:50, function(seed){
 #    dat=dat.X; obsWeights=weights_vaccine; strata=strata_vaccine; var.index=var.index.set; method='method.NNloglik'; mc.cores=1;
-
     res.temp <- get.st.cvauc(dat=dat.X, obsWeights=weights_vaccine, strata=strata_vaccine, var.index=var.index.set, method='method.NNloglik', seed=seed, mc.cores=1)
+    print(res.temp)
     mean(do.call(rbind,res.temp)[,'est.cvauc'])
 })
 mean(pred.vec)
