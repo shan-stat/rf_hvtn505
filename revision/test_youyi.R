@@ -125,96 +125,102 @@ res=sapply(0:10 ,function(seed) {
     weights.train <- obsWeights[c(split$training$case,split$training$control)] ; 
     weights.test <- obsWeights[c(split$test$case,split$test$control)]
     
+    # RF
     set.seed(123)
     fit.rf <- ranger( factor(Y)~., data = dat.train[,var.index$rf], probability = TRUE, min.node.size = 1, case.weights=weights.train ) # Weights
     pred.rf = predict(fit.rf, dat.test)$predictions[,"case"]
     
-    est.cvauc <- WeightedAUC(WeightedROC(guess=pred.rf, label=dat.test$Y, weight=weights.test))    
-    est.cvauc
+    # glm
+    fit.glm <- glm( as.numeric(Y)~., data = dat.train[,var.index$rf], weights=weights.train ) # Weights
+    pred.glm = predict(fit.glm, dat.test)
     
-})
-
-
-
-
-
-
-
-### 2. Experiments ###
-res=sapply(seeds, simplify="array", function (seed) {
-  
-  myprint(seed)
-  
-  table(strata_vaccine, Y_vaccine)
-  
-  # Bootstrap #
-  set.seed(seed)
-  idx.stratum1.case <- sample(which(Y_vaccine==1 & strata_vaccine=="Vacc/Blk_Hisp/[18.4, 25)"), replace=TRUE)
-  idx.stratum1.control <- sample(which(Y_vaccine==0 & strata_vaccine=="Vacc/Blk_Hisp/[18.4, 25)"), replace=TRUE)
-  idx.stratum2.case <- sample(which(Y_vaccine==1 & strata_vaccine=="Vacc/Blk_Hisp/[25, 29.8)"), replace=TRUE)
-  idx.stratum2.control <- sample(which(Y_vaccine==0 & strata_vaccine=="Vacc/Blk_Hisp/[25, 29.8)"), replace=TRUE)
-  #idx.stratum3.case <- sample(which(Y_vaccine==1 & strata_vaccine=="Vacc/Blk_Hisp/[29.8, 40)"), replace=TRUE)
-  idx.stratum3.case <- 134
-  idx.stratum3.control <- sample(which(Y_vaccine==0 & strata_vaccine=="Vacc/Blk_Hisp/[29.8, 40)"), replace=TRUE)
-  idx.stratum4.case <- sample(which(Y_vaccine==1 & strata_vaccine=="Vacc/White/[18.4, 25)"), replace=TRUE)
-  idx.stratum4.control <- sample(which(Y_vaccine==0 & strata_vaccine=="Vacc/White/[18.4, 25)"), replace=TRUE)
-  idx.stratum5.case <- sample(which(Y_vaccine==1 & strata_vaccine=="Vacc/White/[25, 29.8)"), replace=TRUE)
-  idx.stratum5.control <- sample(which(Y_vaccine==0 & strata_vaccine=="Vacc/White/[25, 29.8)"), replace=TRUE)
-  idx.stratum6.case <- sample(which(Y_vaccine==1 & strata_vaccine=="Vacc/White/[29.8, 40)"), replace=TRUE)
-  idx.stratum6.control <- sample(which(Y_vaccine==0 & strata_vaccine=="Vacc/White/[29.8, 40)"), replace=TRUE)
-  
-  idx.case <- c(idx.stratum1.case,idx.stratum2.case,idx.stratum3.case,idx.stratum4.case,idx.stratum5.case,idx.stratum6.case)
-  idx.control <- c(idx.stratum1.control,idx.stratum2.control,idx.stratum3.control,idx.stratum4.control,idx.stratum5.control,idx.stratum6.control)
-  Y_vaccine_boot <- Y_vaccine[c(idx.case, idx.control)]
-  X_vaccine_boot <- X_vaccine[c(idx.case, idx.control),]
-  weights_vaccine_boot <- weights_vaccine[c(idx.case, idx.control)]
-  strata_vaccine_boot <- strata_vaccine[c(idx.case, idx.control)]
-  
-  # Generating data where stacking is fitted #
-  dat.X <- screen.dat.index(Y=Y_vaccine_boot, X=X_vaccine_boot, obsWeights=weights_vaccine_boot, fit.set='all', screen.method='no')$dat
-  
-  dat.tmp=(data.frame(Y_vaccine_boot, X_vaccine_boot[,var.index.set$rf]))
-  
-    set.seed(123)
-    fit.rf <- ranger( factor(Y_vaccine_boot)~., data = dat.tmp, probability = TRUE, min.node.size = 1, case.weights=weights_vaccine_boot ) # Weights
-
-
-  if(can.set=='RF:tcell+glm:antibody'){
-    # RF:tcell + glm:antibody #
-    var.index.set <- list(glm=c(TRUE,screen.var.antibody), rf=c(TRUE,screen.var.tcell))
-  } else if(can.set=='RF:tcell+glm:all'){
-    # RF:tcell + glm:all #
-    var.index.set <- list(glm=c(TRUE,screen.var.all), rf=c(TRUE,screen.var.tcell))
-  } else if(can.set=='RF:all+glm:antibody'){
-    # RF:all + glm:antibody #
-    var.index.set <- list(glm=c(TRUE,screen.var.antibody), rf=c(TRUE,screen.var.all))
-  } else if(can.set=='RF:all+glm:all'){
-    # RF:all + glm:all #
-    var.index.set <- list(glm=c(TRUE,screen.var.all), rf=c(TRUE,screen.var.all))
-  }
-
-
-#
-
+    cvauc.rf  <- WeightedAUC(WeightedROC(guess=pred.rf , label=dat.test$Y, weight=weights.test))    
+    cvauc.glm <- WeightedAUC(WeightedROC(guess=pred.glm, label=dat.test$Y, weight=weights.test))    
+    c(rf=cvauc.rf, glm=cvauc.glm)
     
-
-
-  
-  # Stacking (CV-AUC) #
-  pred.vec <- c()
-  for( i in 1:500 ){
-    print(i)
-    seed <- i
-    # Stacking (CV-AUC) #
-    res.temp <- get.st.cvauc(dat=dat.X, obsWeights=weights_vaccine, strata=strata_vaccine, var.index=var.index.set, method='method.NNloglik', seed=seed)
-    pred.vec[i] <- mean(do.call(rbind,res.temp)[,'est.cvauc'])
-  }
-  mean(pred.vec)
 })
 res
 
 
 
-# save res
-foldername="res_"%.%method%.%"_"%.%can.set%.%"/"; if(!file.exists(foldername)) dir.create(foldername)
-save (res, file=foldername%.%"/batch"%.%formatInt(batch, 3)%.%".Rdata")
+
+#
+#
+#### 2. Experiments ###
+#res=sapply(seeds, simplify="array", function (seed) {
+#  
+#  myprint(seed)
+#  
+#  table(strata_vaccine, Y_vaccine)
+#  
+#  # Bootstrap #
+#  set.seed(seed)
+#  idx.stratum1.case <- sample(which(Y_vaccine==1 & strata_vaccine=="Vacc/Blk_Hisp/[18.4, 25)"), replace=TRUE)
+#  idx.stratum1.control <- sample(which(Y_vaccine==0 & strata_vaccine=="Vacc/Blk_Hisp/[18.4, 25)"), replace=TRUE)
+#  idx.stratum2.case <- sample(which(Y_vaccine==1 & strata_vaccine=="Vacc/Blk_Hisp/[25, 29.8)"), replace=TRUE)
+#  idx.stratum2.control <- sample(which(Y_vaccine==0 & strata_vaccine=="Vacc/Blk_Hisp/[25, 29.8)"), replace=TRUE)
+#  #idx.stratum3.case <- sample(which(Y_vaccine==1 & strata_vaccine=="Vacc/Blk_Hisp/[29.8, 40)"), replace=TRUE)
+#  idx.stratum3.case <- 134
+#  idx.stratum3.control <- sample(which(Y_vaccine==0 & strata_vaccine=="Vacc/Blk_Hisp/[29.8, 40)"), replace=TRUE)
+#  idx.stratum4.case <- sample(which(Y_vaccine==1 & strata_vaccine=="Vacc/White/[18.4, 25)"), replace=TRUE)
+#  idx.stratum4.control <- sample(which(Y_vaccine==0 & strata_vaccine=="Vacc/White/[18.4, 25)"), replace=TRUE)
+#  idx.stratum5.case <- sample(which(Y_vaccine==1 & strata_vaccine=="Vacc/White/[25, 29.8)"), replace=TRUE)
+#  idx.stratum5.control <- sample(which(Y_vaccine==0 & strata_vaccine=="Vacc/White/[25, 29.8)"), replace=TRUE)
+#  idx.stratum6.case <- sample(which(Y_vaccine==1 & strata_vaccine=="Vacc/White/[29.8, 40)"), replace=TRUE)
+#  idx.stratum6.control <- sample(which(Y_vaccine==0 & strata_vaccine=="Vacc/White/[29.8, 40)"), replace=TRUE)
+#  
+#  idx.case <- c(idx.stratum1.case,idx.stratum2.case,idx.stratum3.case,idx.stratum4.case,idx.stratum5.case,idx.stratum6.case)
+#  idx.control <- c(idx.stratum1.control,idx.stratum2.control,idx.stratum3.control,idx.stratum4.control,idx.stratum5.control,idx.stratum6.control)
+#  Y_vaccine_boot <- Y_vaccine[c(idx.case, idx.control)]
+#  X_vaccine_boot <- X_vaccine[c(idx.case, idx.control),]
+#  weights_vaccine_boot <- weights_vaccine[c(idx.case, idx.control)]
+#  strata_vaccine_boot <- strata_vaccine[c(idx.case, idx.control)]
+#  
+#  # Generating data where stacking is fitted #
+#  dat.X <- screen.dat.index(Y=Y_vaccine_boot, X=X_vaccine_boot, obsWeights=weights_vaccine_boot, fit.set='all', screen.method='no')$dat
+#  
+#  dat.tmp=(data.frame(Y_vaccine_boot, X_vaccine_boot[,var.index.set$rf]))
+#  
+#    set.seed(123)
+#    fit.rf <- ranger( factor(Y_vaccine_boot)~., data = dat.tmp, probability = TRUE, min.node.size = 1, case.weights=weights_vaccine_boot ) # Weights
+#
+#
+#  if(can.set=='RF:tcell+glm:antibody'){
+#    # RF:tcell + glm:antibody #
+#    var.index.set <- list(glm=c(TRUE,screen.var.antibody), rf=c(TRUE,screen.var.tcell))
+#  } else if(can.set=='RF:tcell+glm:all'){
+#    # RF:tcell + glm:all #
+#    var.index.set <- list(glm=c(TRUE,screen.var.all), rf=c(TRUE,screen.var.tcell))
+#  } else if(can.set=='RF:all+glm:antibody'){
+#    # RF:all + glm:antibody #
+#    var.index.set <- list(glm=c(TRUE,screen.var.antibody), rf=c(TRUE,screen.var.all))
+#  } else if(can.set=='RF:all+glm:all'){
+#    # RF:all + glm:all #
+#    var.index.set <- list(glm=c(TRUE,screen.var.all), rf=c(TRUE,screen.var.all))
+#  }
+#
+#
+##
+#
+#    
+#
+#
+#  
+#  # Stacking (CV-AUC) #
+#  pred.vec <- c()
+#  for( i in 1:500 ){
+#    print(i)
+#    seed <- i
+#    # Stacking (CV-AUC) #
+#    res.temp <- get.st.cvauc(dat=dat.X, obsWeights=weights_vaccine, strata=strata_vaccine, var.index=var.index.set, method='method.NNloglik', seed=seed)
+#    pred.vec[i] <- mean(do.call(rbind,res.temp)[,'est.cvauc'])
+#  }
+#  mean(pred.vec)
+#})
+#res
+#
+#
+#
+## save res
+#foldername="res_"%.%method%.%"_"%.%can.set%.%"/"; if(!file.exists(foldername)) dir.create(foldername)
+#save (res, file=foldername%.%"/batch"%.%formatInt(batch, 3)%.%".Rdata")
