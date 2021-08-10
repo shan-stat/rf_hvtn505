@@ -72,7 +72,7 @@ var.index.set <- list(glm=c(TRUE,screen.var.antibody), rf=c(TRUE,screen.var.tcel
 pred.vec = sapply(1:10, function(seed){
     myprint(seed)
     
-#    dat=dat.X; obsWeights=weights_vaccine; strata=strata_vaccine; var.index=var.index.set; method='method.NNloglik'; mc.cores=1;
+#    Y=Y_vaccine; X=X_vaccine; obsWeights=weights_vaccine; strata=strata_vaccine; var.index=var.index.set; method='method.NNloglik'; mc.cores=1;
 
     res.temp <- get.st.cvauc(Y=Y_vaccine, X=X_vaccine, obsWeights=weights_vaccine, strata=strata_vaccine, var.index=var.index.set, method='method.NNloglik', seed=seed, mc.cores=1)
     mean(do.call(rbind,res.temp)[,'est.cvauc'])
