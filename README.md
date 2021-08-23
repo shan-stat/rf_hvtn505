@@ -9,8 +9,8 @@ This R file contains several helper functions that help to easly get results.
 - *screen_lasso*: implements lasso variable screening.
 - *screen.dat.index*: generates a dataset and a screened variable index. Users can specify a candidate marker set and whether lasso variable screening is applied.
 - *get_nms_group_all_antigens*: generates variable index by an assay type.
-- *get.rf.cvauc*: fits different types of random forests(standard random forest (RF), RF with under-sampling (RF_under), RF with over-sampling (RF_over), and tuned RF (tRF)). Users can specify inver sampling probability weighting (ipw) in RF model training.
-- *get.glm.cvauc*: fits generalized linear models. Users can specify inver sampling probability weighting (ipw) in GLM model training.
+- *get.rf.cvauc*: fits different types of random forests (standard random forest (RF), RF with under-sampling (RF_under), RF with over-sampling (RF_over), and tuned RF (tRF)). Users can specify inverse sampling probability weighting (ipw) in RF model training.
+- *get.glm.cvauc*: fits generalized linear models. Users can specify inverse sampling probability weighting (ipw) in GLM model training.
 - *get.st.cvauc*: fits stacking that is based on random forests and generalized linear models. 
 
 ## experiments.R
