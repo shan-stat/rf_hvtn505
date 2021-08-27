@@ -1,0 +1,11 @@
+
+res/RF_all+GLM_all_res1.Rdata
+res/RF_all+GLM_all_res2.Rdata
+res/RF_all+GLM_antibody_res1.Rdata
+res/RF_all+GLM_antibody_res2.Rdata
+res/RF_tcell+GLM_all_res1.Rdata
+res/RF_tcell+GLM_all_res2.Rdata
+res/RF_tcell+GLM_antibody_res1.Rdata
+res/RF_tcell+GLM_antibody_res2.Rdata
+predscores_boxplot.pdf
+predscores_scatterplot.pdf
